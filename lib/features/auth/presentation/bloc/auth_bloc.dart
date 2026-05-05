@@ -1,22 +1,54 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/repository/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc() : super(AuthInitial()) {
+  final AuthRepository _authRepository;
+
+  AuthBloc({required AuthRepository authRepository})
+      : _authRepository = authRepository,
+        super(AuthInitial()) {
     on<AppStarted>((event, emit) async {
       emit(AuthLoading());
-     
-      await Future.delayed(const Duration(seconds: 2));
-      emit(AuthUnauthenticated());
+      final user = _authRepository.currentUser;
+      if (user != null) {
+        emit(AuthAuthenticated());
+      } else {
+        emit(AuthUnauthenticated());
+      }
     });
 
-    on<LoggedIn>((event, emit) {
-      emit(AuthAuthenticated());
+    on<LoginRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        await _authRepository.signIn(email: event.email, password: event.password);
+        emit(AuthAuthenticated());
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
     });
 
-    on<LoggedOut>((event, emit) {
-      emit(AuthUnauthenticated());
+    on<RegisterRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        await _authRepository.signUp(email: event.email, password: event.password);
+        // Supabase auto-logs in after sign up if email confirmation isn't required.
+        // We will assume they are authenticated or wait for the session stream.
+        emit(AuthAuthenticated());
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
+    });
+
+    on<LoggedOut>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        await _authRepository.signOut();
+        emit(AuthUnauthenticated());
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
     });
   }
 }
