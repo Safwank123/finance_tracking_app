@@ -34,7 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
-          Navigator.of(context).pushNamedAndRemoveUntil(RouteNames.login.name, (route) => false);
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(RouteNames.login.name, (route) => false);
         }
       },
       child: Scaffold(
@@ -44,134 +46,155 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: const [AppBarActions()],
         ),
         body: SafeArea(
-        child: BlocConsumer<HomeBloc, HomeState>(
-          listener: (context, state) {
-            if (state is HomeError) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
-            }
-          },
-          builder: (context, state) {
-            if (state is HomeLoading || state is HomeInitial) {
-              return _buildLoadingSkeleton();
-            }
+          child: BlocConsumer<HomeBloc, HomeState>(
+            listener: (context, state) {
+              if (state is HomeError) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.message)));
+              }
+            },
+            builder: (context, state) {
+              if (state is HomeLoading || state is HomeInitial) {
+                return _buildLoadingSkeleton();
+              }
 
-            if (state is HomeLoaded) {
-              return Stack(
-                children: [
-                  RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<HomeBloc>().add(LoadHomeData());
-                    },
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSummary(state.transactions),
-                                const SizedBox(height: 24),
-                                Text(
-                                  'Your Accounts',
-                                  style: AppTypography.style20Bold.copyWith(color: AppColors.textPrimary),
-                                ),
-                                const SizedBox(height: 16),
-                                _AccountsListBuilder(accounts: state.accounts, selectedAccount: state.selectedAccount),
-                                const SizedBox(height: 32),
-                                _FiltersAndSearchBuilder(currentFilter: state.currentFilter),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Transactions',
-                                  style: AppTypography.style20Bold.copyWith(color: AppColors.textPrimary),
-                                ),
-                              ],
+              if (state is HomeLoaded) {
+                return Stack(
+                  children: [
+                    RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<HomeBloc>().add(LoadHomeData());
+                      },
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSummary(context, state.transactions, state.selectedAccount),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Your Accounts',
+                                    style: AppTypography.style20Bold.copyWith(
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _AccountsListBuilder(
+                                    accounts: state.accounts,
+                                    selectedAccount: state.selectedAccount,
+                                  ),
+                                  const SizedBox(height: 32),
+                                  _FiltersAndSearchBuilder(
+                                    currentFilter: state.currentFilter,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Transactions',
+                                    style: AppTypography.style20Bold.copyWith(
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        if (state.transactions.isNotEmpty)
-                          SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            sliver: SliverList(
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) {
+                          if (state.transactions.isNotEmpty)
+                            SliverPadding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              sliver: SliverList(
+                                delegate: SliverChildBuilderDelegate((
+                                  context,
+                                  index,
+                                ) {
                                   if (index >= state.transactions.length) {
                                     return const SizedBox.shrink();
                                   }
                                   final transaction = state.transactions[index];
                                   final accountName = state.accounts
-                                      .firstWhere((a) => a.id == transaction.accountId,
-                                          orElse: () => const Account(id: '', name: 'Unknown'))
+                                      .firstWhere(
+                                        (a) => a.id == transaction.accountId,
+                                        orElse: () => const Account(
+                                          id: '',
+                                          name: 'Unknown',
+                                        ),
+                                      )
                                       .name;
                                   return _TransactionItemBuilder(
                                     transaction: transaction,
                                     accountName: accountName,
                                   );
-                                },
-                                childCount: state.transactions.length,
+                                }, childCount: state.transactions.length),
                               ),
-                            ),
-                          )
-                        else
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.all(32.0),
-                              child: Center(
-                                child: Text(
-                                  'No transactions found.',
-                                  style: AppTypography.style16Regular.copyWith(color: AppColors.textSecondary),
+                            )
+                          else
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Center(
+                                  child: Text(
+                                    'No transactions found.',
+                                    style: AppTypography.style16Regular
+                                        .copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                
-                  if (state.isLoadingFilters)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 300,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.3),
-                            ],
+
+                    if (state.isLoadingFilters)
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 300,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.3),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: Center(
-                          child: Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(3, (index) {
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  height: 60,
-                                  width: double.infinity,
-                                  color: Colors.white,
-                                );
-                              }),
+                          child: Center(
+                            child: Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(3, (index) {
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    height: 60,
+                                    width: double.infinity,
+                                    color: Colors.white,
+                                  );
+                                }),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              );
-            }
-            return const Center(child: Text('Something went wrong'));
-          },
+                  ],
+                );
+              }
+              return const Center(child: Text('Something went wrong'));
+            },
+          ),
         ),
       ),
-      floatingActionButton: const _FloatingActionButtonBuilder(),
     );
   }
 
@@ -182,7 +205,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           
             Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
@@ -195,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 24),
-          
+
             Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
@@ -218,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 32),
-           
+
             ...List.generate(5, (index) {
               return Shimmer.fromColors(
                 baseColor: Colors.grey[300]!,
@@ -239,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSummary(List<TransactionModel> transactions) {
+  Widget _buildSummary(BuildContext context, List<TransactionModel> transactions, Account? selectedAccount) {
     double checkIn = 0;
     double checkOut = 0;
 
@@ -254,75 +276,205 @@ class _HomeScreenState extends State<HomeScreen> {
     final balance = checkIn - checkOut;
     final formatter = NumberFormat.currency(symbol: '\$');
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('FINANCIAL OVERVIEW', style: AppTypography.style12SemiBold.copyWith(color: AppColors.primary, letterSpacing: 1.2)),
+        const SizedBox(height: 4),
+        Text(selectedAccount?.name ?? 'All Accounts', style: AppTypography.style16Regular.copyWith(color: AppColors.textPrimary)),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.add_circle_outline, size: 18),
+                label: const Text('Add Income'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  final state = context.read<HomeBloc>().state;
+                  if (state is HomeLoaded && state.accounts.isNotEmpty) {
+                    _showAddTransactionDialog(context, state.accounts, true);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add an account first')));
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.remove_circle_outline, size: 18),
+                label: const Text('Add Expense'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  foregroundColor: AppColors.primary,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  final state = context.read<HomeBloc>().state;
+                  if (state is HomeLoaded && state.accounts.isNotEmpty) {
+                    _showAddTransactionDialog(context, state.accounts, false);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add an account first')));
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Available Balance', style: AppTypography.style14Regular.copyWith(color: AppColors.textSecondary)),
+              const SizedBox(height: 8),
+              Text(formatter.format(balance), style: AppTypography.style32Bold.copyWith(color: AppColors.textPrimary)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        
+        _buildStatCard('Total Check-In', formatter.format(checkIn), Icons.arrow_downward, Colors.green),
+        const SizedBox(height: 12),
+        
+        _buildStatCard('Total Check-Out', formatter.format(checkOut), Icons.arrow_upward, Colors.red),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String label, String amount, IconData icon, Color color) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, Color(0xFF3700B3)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha:0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+        border: Border(left: BorderSide(color: color, width: 4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Available Balance', style: AppTypography.style16Regular.copyWith(color: Colors.white70)),
+          Icon(icon, color: color, size: 20),
           const SizedBox(height: 8),
-          Text(
-            formatter.format(balance),
-            style: AppTypography.style32Bold.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSummaryItem('Check-In', formatter.format(checkIn), Icons.arrow_downward, Colors.greenAccent),
-              _buildSummaryItem('Check-Out', formatter.format(checkOut), Icons.arrow_upward, Colors.redAccent),
-            ],
-          )
+          Text(label, style: AppTypography.style14Regular.copyWith(color: AppColors.textSecondary)),
+          const SizedBox(height: 4),
+          Text(amount, style: AppTypography.style16Bold.copyWith(color: color)),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryItem(String label, String amount, IconData icon, Color color) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: color.withValues(alpha:0.2), shape: BoxShape.circle),
-          child: Icon(icon, color: color, size: 16),
-        ),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: AppTypography.style12Regular.copyWith(color: Colors.white70)),
-            Text(amount, style: AppTypography.style16Bold.copyWith(color: Colors.white)),
-          ],
-        )
-      ],
+  void _showAddTransactionDialog(BuildContext context, List<Account> accounts, bool initialIsIncome) {
+    final titleController = TextEditingController();
+    final amountController = TextEditingController();
+    final noteController = TextEditingController();
+    bool isIncome = initialIsIncome;
+    String selectedAccountId = accounts.first.id;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Add Transaction'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedAccountId,
+                      items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
+                      onChanged: (val) {
+                        setState(() => selectedAccountId = val!);
+                      },
+                      decoration: const InputDecoration(labelText: 'Account'),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: Text(isIncome ? 'Income' : 'Expense'),
+                      value: isIncome,
+                      onChanged: (val) => setState(() => isIncome = val),
+                    ),
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(labelText: 'Title'),
+                    ),
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Amount'),
+                    ),
+                    TextField(
+                      controller: noteController,
+                      decoration: const InputDecoration(labelText: 'Note (Optional)'),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final amount = double.tryParse(amountController.text) ?? 0;
+                    if (titleController.text.isNotEmpty && amount > 0) {
+                      context.read<HomeBloc>().add(
+                        AddTransaction(
+                          accountId: selectedAccountId,
+                          title: titleController.text,
+                          amount: amount,
+                          note: noteController.text,
+                          isIncome: isIncome,
+                        ),
+                      );
+                      Navigator.pop(ctx);
+                      toastification.show(
+                        context: context,
+                        type: ToastificationType.success,
+                        style: ToastificationStyle.flatColored,
+                        title: const Text('Transaction Added!'),
+                        autoCloseDuration: const Duration(seconds: 3),
+                        alignment: Alignment.bottomCenter,
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
-
 
 class _AccountsListBuilder extends StatelessWidget {
   final List<Account> accounts;
   final Account? selectedAccount;
 
-  const _AccountsListBuilder({
-    required this.accounts,
-    this.selectedAccount,
-  });
+  const _AccountsListBuilder({required this.accounts, this.selectedAccount});
 
   @override
   Widget build(BuildContext context) {
@@ -374,11 +526,19 @@ class _AccountsListBuilder extends StatelessWidget {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.isNotEmpty) {
-                  context.read<HomeBloc>().add(AddAccount(name: nameController.text, colorCode: selectedColor));
+                  context.read<HomeBloc>().add(
+                    AddAccount(
+                      name: nameController.text,
+                      colorCode: selectedColor,
+                    ),
+                  );
                   Navigator.pop(ctx);
                   toastification.show(
                     context: context,
@@ -407,10 +567,12 @@ class _AccountsListBuilder extends StatelessWidget {
       margin: const EdgeInsets.only(right: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSelected ? color.withValues(alpha:0.2) : color.withValues(alpha:0.05),
+        color: isSelected
+            ? color.withValues(alpha: 0.2)
+            : color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected ? color : color.withValues(alpha:0.2),
+          color: isSelected ? color : color.withValues(alpha: 0.2),
           width: isSelected ? 2 : 1,
         ),
       ),
@@ -429,7 +591,9 @@ class _AccountsListBuilder extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             formatter.format(account.balance),
-            style: AppTypography.style18Bold.copyWith(color: AppColors.textPrimary),
+            style: AppTypography.style18Bold.copyWith(
+              color: AppColors.textPrimary,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -443,9 +607,12 @@ class _AccountsListBuilder extends StatelessWidget {
       width: 140,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha:0.05),
+        color: Colors.grey.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha:0.3), style: BorderStyle.solid),
+        border: Border.all(
+          color: Colors.grey.withValues(alpha: 0.3),
+          style: BorderStyle.solid,
+        ),
       ),
       child: Center(
         child: Column(
@@ -455,7 +622,9 @@ class _AccountsListBuilder extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Add Account',
-              style: AppTypography.style14SemiBold.copyWith(color: AppColors.textSecondary),
+              style: AppTypography.style14SemiBold.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
@@ -476,7 +645,8 @@ class _FiltersAndSearchBuilder extends StatefulWidget {
   const _FiltersAndSearchBuilder({required this.currentFilter});
 
   @override
-  State<_FiltersAndSearchBuilder> createState() => _FiltersAndSearchBuilderState();
+  State<_FiltersAndSearchBuilder> createState() =>
+      _FiltersAndSearchBuilderState();
 }
 
 class _FiltersAndSearchBuilderState extends State<_FiltersAndSearchBuilder> {
@@ -514,7 +684,9 @@ class _FiltersAndSearchBuilderState extends State<_FiltersAndSearchBuilder> {
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: ['All', 'Today', 'Weekly', 'Monthly', 'Yearly'].map((filter) {
+            children: ['All', 'Today', 'Weekly', 'Monthly', 'Yearly'].map((
+              filter,
+            ) {
               final isSelected = widget.currentFilter == filter;
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
@@ -535,7 +707,6 @@ class _FiltersAndSearchBuilderState extends State<_FiltersAndSearchBuilder> {
     );
   }
 }
-
 
 class _TransactionItemBuilder extends StatelessWidget {
   final TransactionModel transaction;
@@ -559,7 +730,7 @@ class _TransactionItemBuilder extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -570,7 +741,9 @@ class _TransactionItemBuilder extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isIncome ? Colors.green.withValues(alpha:0.1) : Colors.red.withValues(alpha:0.1),
+              color: isIncome
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.red.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -585,130 +758,53 @@ class _TransactionItemBuilder extends StatelessWidget {
               children: [
                 Text(
                   transaction.title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${DateFormat('MMM dd, yyyy').format(transaction.createdAt)} • $accountName',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
           ),
-          Text(
-            '${isIncome ? '+' : '-'}${formatter.format(transaction.amount)}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isIncome ? Colors.green : Colors.red,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${isIncome ? '+' : '-'}${formatter.format(transaction.amount)}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isIncome ? Colors.green : Colors.red,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isIncome ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isIncome ? 'CREDIT' : 'DEBIT',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: isIncome ? Colors.green : Colors.red,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
         ],
       ),
-    );
-  }
-}
-
-class _FloatingActionButtonBuilder extends StatelessWidget {
-  const _FloatingActionButtonBuilder();
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () {
-        final state = context.read<HomeBloc>().state;
-        if (state is HomeLoaded && state.accounts.isNotEmpty) {
-          _showAddTransactionDialog(context, state.accounts);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please add an account first')),
-          );
-        }
-      },
-      backgroundColor: AppColors.primary,
-      child: const Icon(Icons.add, color: Colors.white),
-    );
-  }
-
-  void _showAddTransactionDialog(BuildContext context, List<Account> accounts) {
-    final titleController = TextEditingController();
-    final amountController = TextEditingController();
-    final noteController = TextEditingController();
-    bool isIncome = false;
-    String selectedAccountId = accounts.first.id;
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Add Transaction'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedAccountId,
-                      items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                      onChanged: (val) {
-                        setState(() => selectedAccountId = val!);
-                      },
-                      decoration: const InputDecoration(labelText: 'Account'),
-                    ),
-                    const SizedBox(height: 8),
-                    SwitchListTile(
-                      title: Text(isIncome ? 'Income' : 'Expense'),
-                      value: isIncome,
-                      onChanged: (val) => setState(() => isIncome = val),
-                    ),
-                    TextField(
-                      controller: titleController,
-                      decoration: const InputDecoration(labelText: 'Title'),
-                    ),
-                    TextField(
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Amount'),
-                    ),
-                    TextField(
-                      controller: noteController,
-                      decoration: const InputDecoration(labelText: 'Note (Optional)'),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                ElevatedButton(
-                  onPressed: () {
-                    final amount = double.tryParse(amountController.text) ?? 0;
-                    if (titleController.text.isNotEmpty && amount > 0) {
-                      context.read<HomeBloc>().add(AddTransaction(
-                            accountId: selectedAccountId,
-                            title: titleController.text,
-                            amount: amount,
-                            note: noteController.text,
-                            isIncome: isIncome,
-                          ));
-                      Navigator.pop(ctx);
-                      toastification.show(
-                        context: context,
-                        type: ToastificationType.success,
-                        style: ToastificationStyle.flatColored,
-                        title: const Text('Transaction Added!'),
-                        autoCloseDuration: const Duration(seconds: 3),
-                        alignment: Alignment.bottomCenter,
-                      );
-                    }
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
     );
   }
 }
