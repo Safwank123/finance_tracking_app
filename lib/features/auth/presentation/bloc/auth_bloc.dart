@@ -6,7 +6,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(AuthInitial()) {
     on<AppStarted>((event, emit) async {
       emit(AuthLoading());
-      // TODO: Check auth status from Supabase
+     
       await Future.delayed(const Duration(seconds: 2));
       emit(AuthUnauthenticated());
     });
