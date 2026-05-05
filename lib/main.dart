@@ -10,8 +10,8 @@ void main() async {
   
  
   await Supabase.initialize(
-    url: 'YOUR_SUPABASE_URL',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    url: 'https://pafsvxwktalbixpgprft.supabase.co/rest/v1/',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhZnN2eHdrdGFsYml4cGdwcmZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzUyNjksImV4cCI6MjA5MzU1MTI2OX0.cZFxkAVwk_nZdlm2dV7mnSNm2u4tBBxVl8rSdiq1Qsw',
   );
 
   runApp(const FinanceTrackerApp());
