@@ -1,7 +1,9 @@
+import 'package:finance_tracking_app/config/typography/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:toastification/toastification.dart';
 import '../../../../config/colors/app_colors.dart';
 import '../../data/models/account_model.dart';
 import '../../data/models/transaction_model.dart';
@@ -369,6 +371,14 @@ class _AccountsListBuilder extends StatelessWidget {
                 if (nameController.text.isNotEmpty) {
                   context.read<HomeBloc>().add(AddAccount(name: nameController.text, colorCode: selectedColor));
                   Navigator.pop(ctx);
+                  toastification.show(
+                    context: context,
+                    type: ToastificationType.success,
+                    style: ToastificationStyle.flatColored,
+                    title: const Text('Account Created!'),
+                    autoCloseDuration: const Duration(seconds: 3),
+                    alignment: Alignment.bottomCenter,
+                  );
                 }
               },
               child: const Text('Add'),
@@ -538,12 +548,12 @@ class _TransactionItemBuilder extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.02),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -675,6 +685,14 @@ class _FloatingActionButtonBuilder extends StatelessWidget {
                             isIncome: isIncome,
                           ));
                       Navigator.pop(ctx);
+                      toastification.show(
+                        context: context,
+                        type: ToastificationType.success,
+                        style: ToastificationStyle.flatColored,
+                        title: const Text('Transaction Added!'),
+                        autoCloseDuration: const Duration(seconds: 3),
+                        alignment: Alignment.bottomCenter,
+                      );
                     }
                   },
                   child: const Text('Save'),

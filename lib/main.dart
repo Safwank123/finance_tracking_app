@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:toastification/toastification.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'config/routes/app_routes.dart';
 import 'config/theme/app_theme.dart';
+import 'config/network/network_bloc.dart';
 import 'features/auth/data/repository/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/home/data/repository/home_repository.dart';
@@ -26,6 +29,9 @@ class FinanceTrackerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<NetworkBloc>(
+          create: (context) => NetworkBloc(connectivity: Connectivity()),
+        ),
         BlocProvider<AuthBloc>(
           create: (context) => AuthBloc(authRepository: AuthRepository()),
         ),
@@ -33,13 +39,43 @@ class FinanceTrackerApp extends StatelessWidget {
           create: (context) => HomeBloc(homeRepository: HomeRepository()),
         ),
       ],
-      child: MaterialApp(
-        title: 'Finance Tracker',
-        theme: AppTheme.lightTheme,
-        debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.splash,
-        onGenerateRoute: AppRoutes.onGenerateRoute,
+      child: ToastificationWrapper(
+        child: BlocListener<NetworkBloc, NetworkState>(
+          listener: (context, state) {
+            if (!state.isConnected) {
+              toastification.show(
+                context: context,
+                type: ToastificationType.error,
+                style: ToastificationStyle.flatColored,
+                title: const Text('You are offline'),
+                description: const Text('Please check your internet connection.'),
+                alignment: Alignment.topCenter,
+                autoCloseDuration: const Duration(seconds: 4),
+                icon: const Icon(Icons.wifi_off),
+              );
+            } else if (state.isRestored) {
+              toastification.show(
+                context: context,
+                type: ToastificationType.success,
+                style: ToastificationStyle.flatColored,
+                title: const Text('Back online'),
+                description: const Text('Internet connection restored.'),
+                alignment: Alignment.topCenter,
+                autoCloseDuration: const Duration(seconds: 3),
+                icon: const Icon(Icons.wifi),
+              );
+            }
+          },
+          child: MaterialApp(
+            title: 'Finance Tracker',
+            theme: AppTheme.lightTheme,
+            debugShowCheckedModeBanner: false,
+            initialRoute: RouteNames.splash.name,
+            onGenerateRoute: AppRoutes.onGenerateRoute,
+          ),
+        ),
       ),
     );
   }
 }
+

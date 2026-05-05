@@ -24,9 +24,9 @@ class _SplashScreenState extends State<SplashScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+          Navigator.of(context).pushReplacementNamed(RouteNames.home.name);
         } else if (state is AuthUnauthenticated) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+          Navigator.of(context).pushReplacementNamed(RouteNames.login.name);
         }
       },
       child: const Scaffold(
@@ -37,3 +37,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+

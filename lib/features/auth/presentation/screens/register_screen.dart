@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:toastification/toastification.dart';
 import '../../../../config/colors/app_colors.dart';
 import '../../../../config/routes/app_routes.dart';
 import '../../../../config/typography/app_typography.dart';
@@ -38,7 +39,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
@@ -46,9 +50,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
       return;
     }
 
@@ -59,7 +63,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    context.read<AuthBloc>().add(RegisterRequested(name: name, email: email, password: password));
+    context.read<AuthBloc>().add(
+      RegisterRequested(name: name, email: email, password: password),
+    );
   }
 
   @override
@@ -67,10 +73,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+          toastification.show(
+            context: context,
+            type: ToastificationType.success,
+            style: ToastificationStyle.flatColored,
+            title: const Text('Account Created Successfully'),
+            autoCloseDuration: const Duration(seconds: 3),
+            alignment: Alignment.bottomCenter,
+          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(RouteNames.home.name, (route) => false);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+          toastification.show(
+            context: context,
+            type: ToastificationType.error,
+            style: ToastificationStyle.flatColored,
+            title: Text(state.message),
+            autoCloseDuration: const Duration(seconds: 4),
+            alignment: Alignment.bottomCenter,
           );
         }
       },
@@ -87,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -99,39 +120,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Text(
                       'Create Account',
-                      style: AppTypography.style32Bold.copyWith(color: AppColors.textPrimary),
+                      style: AppTypography.style32Bold.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Join professionals managing wealth with clarity.',
-                      style: AppTypography.style16Regular.copyWith(color: AppColors.textSecondary),
+                      style: AppTypography.style16Regular.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
                     CustomTextField(
                       label: 'Name',
                       controller: _nameController,
-                      prefixIcon: const Icon(Icons.person_outline, color: AppColors.iconColor),
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                        color: AppColors.iconColor,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: 'Email',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(Icons.email_outlined, color: AppColors.iconColor),
+                      prefixIcon: const Icon(
+                        Icons.email_outlined,
+                        color: AppColors.iconColor,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: 'Password',
                       controller: _passwordController,
                       obscureText: true,
-                      prefixIcon: const Icon(Icons.lock_outline, color: AppColors.iconColor),
+                      prefixIcon: const Icon(
+                        Icons.lock_outline,
+                        color: AppColors.iconColor,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: 'Confirm Password',
                       controller: _confirmPasswordController,
                       obscureText: true,
-                      prefixIcon: const Icon(Icons.verified_user_outlined, color: AppColors.iconColor),
+                      prefixIcon: const Icon(
+                        Icons.verified_user_outlined,
+                        color: AppColors.iconColor,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -147,7 +184,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 _agreedToTerms = val ?? false;
                               });
                             },
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                             activeColor: AppColors.primary,
                           ),
                         ),
@@ -155,17 +194,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Expanded(
                           child: RichText(
                             text: TextSpan(
-                              style: AppTypography.style14Regular.copyWith(color: AppColors.textPrimary),
+                              style: AppTypography.style14Regular.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
                               children: [
                                 const TextSpan(text: 'I agree to the '),
                                 TextSpan(
                                   text: 'Terms of Service',
-                                  style: AppTypography.style14SemiBold.copyWith(color: AppColors.primary),
+                                  style: AppTypography.style14SemiBold.copyWith(
+                                    color: AppColors.primary,
+                                  ),
                                 ),
                                 const TextSpan(text: ' and '),
                                 TextSpan(
                                   text: 'Privacy Policy',
-                                  style: AppTypography.style14SemiBold.copyWith(color: AppColors.primary),
+                                  style: AppTypography.style14SemiBold.copyWith(
+                                    color: AppColors.primary,
+                                  ),
                                 ),
                                 const TextSpan(text: '.'),
                               ],
@@ -192,7 +237,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         Text(
                           'Already have an account? ',
-                          style: AppTypography.style16Regular.copyWith(color: AppColors.textSecondary),
+                          style: AppTypography.style16Regular.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -200,7 +247,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           },
                           child: Text(
                             'Log In',
-                            style: AppTypography.style16Bold.copyWith(color: AppColors.primary),
+                            style: AppTypography.style16Bold.copyWith(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ],

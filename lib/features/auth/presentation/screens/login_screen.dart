@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:toastification/toastification.dart';
 import '../../../../config/colors/app_colors.dart';
 import '../../../../config/routes/app_routes.dart';
 import '../../../../config/typography/app_typography.dart';
@@ -44,10 +45,23 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+          toastification.show(
+            context: context,
+            type: ToastificationType.success,
+            style: ToastificationStyle.flatColored,
+            title: const Text('Login Successful'),
+            autoCloseDuration: const Duration(seconds: 3),
+            alignment: Alignment.bottomCenter,
+          );
+          Navigator.of(context).pushReplacementNamed(RouteNames.home.name);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+          toastification.show(
+            context: context,
+            type: ToastificationType.error,
+            style: ToastificationStyle.flatColored,
+            title: Text(state.message),
+            autoCloseDuration: const Duration(seconds: 4),
+            alignment: Alignment.bottomCenter,
           );
         }
       },
@@ -119,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator.of(context).pushNamed(AppRoutes.register);
+                            Navigator.of(context).pushNamed(RouteNames.register.name);
                           },
                           child: Text(
                             'Sign Up',
@@ -138,3 +152,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
