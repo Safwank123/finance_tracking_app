@@ -19,6 +19,7 @@ class HomeLoaded extends HomeState {
   final String currentFilter;
   final String searchQuery;
   final Account? selectedAccount;
+  final bool isLoadingFilters;
 
   const HomeLoaded({
     required this.accounts,
@@ -26,6 +27,7 @@ class HomeLoaded extends HomeState {
     this.currentFilter = 'All',
     this.searchQuery = '',
     this.selectedAccount,
+    this.isLoadingFilters = false,
   });
 
   HomeLoaded copyWith({
@@ -34,6 +36,7 @@ class HomeLoaded extends HomeState {
     String? currentFilter,
     String? searchQuery,
     Account? selectedAccount,
+    bool? isLoadingFilters,
   }) {
     return HomeLoaded(
       accounts: accounts ?? this.accounts,
@@ -41,11 +44,12 @@ class HomeLoaded extends HomeState {
       currentFilter: currentFilter ?? this.currentFilter,
       searchQuery: searchQuery ?? this.searchQuery,
       selectedAccount: selectedAccount,
+      isLoadingFilters: isLoadingFilters ?? this.isLoadingFilters,
     );
   }
 
   @override
-  List<Object?> get props => [accounts, transactions, currentFilter, searchQuery, selectedAccount];
+  List<Object?> get props => [accounts, transactions, currentFilter, searchQuery, selectedAccount, isLoadingFilters];
 }
 
 class HomeError extends HomeState {

@@ -6,11 +6,12 @@ class AuthRepository {
   AuthRepository({SupabaseClient? supabaseClient})
       : _supabaseClient = supabaseClient ?? Supabase.instance.client;
 
-  Future<AuthResponse> signUp({required String email, required String password}) async {
+  Future<AuthResponse> signUp({required String name, required String email, required String password}) async {
     try {
       final response = await _supabaseClient.auth.signUp(
         email: email,
         password: password,
+        data: {'full_name': name},
       );
       return response;
     } catch (e) {

@@ -73,14 +73,16 @@ class HomeRepository {
 
     if (filter != 'All') {
       final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      
       transactions = transactions.where((t) {
+        final txDate = DateTime(t.createdAt.year, t.createdAt.month, t.createdAt.day);
+        
         if (filter == 'Today') {
-          return t.createdAt.year == now.year &&
-                 t.createdAt.month == now.month &&
-                 t.createdAt.day == now.day;
+          return txDate == today;
         } else if (filter == 'Weekly') {
-          final weekAgo = now.subtract(const Duration(days: 7));
-          return t.createdAt.isAfter(weekAgo);
+          final sevenDaysAgo = today.subtract(const Duration(days: 7));
+          return txDate == sevenDaysAgo || txDate.isAfter(sevenDaysAgo);
         } else if (filter == 'Monthly') {
           return t.createdAt.year == now.year && t.createdAt.month == now.month;
         } else if (filter == 'Yearly') {

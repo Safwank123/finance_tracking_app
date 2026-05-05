@@ -31,7 +31,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onFilterChanged(FilterChanged event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      emit(HomeLoading());
+      // Do not emit HomeLoading() here to avoid wiping the screen
       try {
         final transactions = await _homeRepository.getTransactions(
           accountId: currentState.selectedAccount?.id,
@@ -48,7 +48,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onSearchQueryChanged(SearchQueryChanged event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      emit(HomeLoading());
+      // Do not emit HomeLoading() here to avoid wiping the screen
       try {
         final transactions = await _homeRepository.getTransactions(
           accountId: currentState.selectedAccount?.id,
@@ -65,23 +65,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onAccountSelected(AccountSelected event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      emit(HomeLoading());
+      // Do not emit HomeLoading() here to avoid wiping the screen
       try {
         final transactions = await _homeRepository.getTransactions(
           accountId: event.account?.id,
           searchQuery: currentState.searchQuery,
           filter: currentState.currentFilter,
         );
-        // Important: if event.account is null, copyWith must handle nulling it out. 
-        // We handle this explicitly in copyWith, but we should make sure we pass null.
+        // Emit new state with updated transactions
         emit(HomeLoaded(
           accounts: currentState.accounts,
           transactions: transactions,
           currentFilter: currentState.currentFilter,
           searchQuery: currentState.searchQuery,
           selectedAccount: event.account,
+          isLoadingFilters: false,
         ));
       } catch (e) {
+        emit(currentState.copyWith(isLoadingFilters: false));
         emit(HomeError(e.toString()));
       }
     }

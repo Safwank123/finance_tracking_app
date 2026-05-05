@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../config/colors/app_colors.dart';
+import '../../../config/typography/app_typography.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
@@ -19,26 +20,41 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: prefixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.textSecondary),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.style14SemiBold.copyWith(color: AppColors.textPrimary),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.textSecondary.withOpacity(0.5)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          style: AppTypography.style16Regular.copyWith(color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: 'Enter your ${label.toLowerCase()}',
+            hintStyle: AppTypography.style16Regular.copyWith(color: AppColors.textSecondary.withOpacity(0.5)),
+            prefixIcon: prefixIcon,
+            filled: true,
+            fillColor: AppColors.inputFill,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary),
-        ),
-      ),
+      ],
     );
   }
 }

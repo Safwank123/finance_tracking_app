@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../config/colors/app_colors.dart';
+import '../../../config/typography/app_typography.dart';
 
 class CustomAppButton extends StatelessWidget {
   final String text;
@@ -21,22 +22,25 @@ class CustomAppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 56,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? AppColors.primary,
+          elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
         onPressed: isLoading ? null : onPressed,
         child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
             : Text(
                 text,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                style: AppTypography.style18SemiBold.copyWith(
                   color: textColor ?? Colors.white,
                 ),
               ),

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../config/colors/app_colors.dart';
 import '../../data/models/account_model.dart';
 import '../../data/models/transaction_model.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_event.dart';
-import '../../../../core/utils/pdf_export_service.dart';
+import '../widgets/app_bar_actions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,8 +18,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -33,36 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Finance Tracker'),
-        actions: [
-          BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-              return IconButton(
-                icon: const Icon(Icons.picture_as_pdf),
-                onPressed: () {
-                  if (state is HomeLoaded) {
-                    if (state.transactions.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('No transactions to export')),
-                      );
-                      return;
-                    }
-                    PdfExportService.exportTransactionHistory(
-                      state.selectedAccount,
-                      state.transactions,
-                      state.currentFilter,
-                    );
-                  }
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              context.read<AuthBloc>().add(LoggedOut());
-            },
-          ),
-        ],
+        actions: const [AppBarActions()],
       ),
       body: SafeArea(
         child: BlocConsumer<HomeBloc, HomeState>(
@@ -73,98 +41,189 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           builder: (context, state) {
             if (state is HomeLoading || state is HomeInitial) {
-              return const Center(child: CircularProgressIndicator());
+              return _buildLoadingSkeleton();
             }
 
             if (state is HomeLoaded) {
-              return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<HomeBloc>().add(LoadHomeData());
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSummary(state.transactions),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Your Accounts',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+              return Stack(
+                children: [
+                  RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<HomeBloc>().add(LoadHomeData());
+                    },
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSummary(state.transactions),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'Your Accounts',
+                                  style: AppTypography.style20Bold.copyWith(color: AppColors.textPrimary),
+                                ),
+                                const SizedBox(height: 16),
+                                _AccountsListBuilder(accounts: state.accounts, selectedAccount: state.selectedAccount),
+                                const SizedBox(height: 32),
+                                _FiltersAndSearchBuilder(currentFilter: state.currentFilter),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Transactions',
+                                  style: AppTypography.style20Bold.copyWith(color: AppColors.textPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (state.transactions.isNotEmpty)
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  if (index >= state.transactions.length) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final transaction = state.transactions[index];
+                                  final accountName = state.accounts
+                                      .firstWhere((a) => a.id == transaction.accountId,
+                                          orElse: () => const Account(id: '', name: 'Unknown'))
+                                      .name;
+                                  return _TransactionItemBuilder(
+                                    transaction: transaction,
+                                    accountName: accountName,
+                                  );
+                                },
+                                childCount: state.transactions.length,
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            _buildAccountsList(context, state.accounts, state.selectedAccount),
-                            const SizedBox(height: 32),
-                            _buildFiltersAndSearch(context, state.currentFilter),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Transactions',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                          )
+                        else
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.all(32.0),
+                              child: Center(
+                                child: Text(
+                                  'No transactions found.',
+                                  style: AppTypography.style16Regular.copyWith(color: AppColors.textSecondary),
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                      ],
                     ),
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final transaction = state.transactions[index];
-                            final accountName = state.accounts
-                                .firstWhere((a) => a.id == transaction.accountId,
-                                    orElse: () => const Account(id: '', name: 'Unknown'))
-                                .name;
-                            return _buildTransactionItem(transaction, accountName);
-                          },
-                          childCount: state.transactions.length,
+                  ),
+                  // Loading overlay for filter/search
+                  if (state.isLoadingFilters)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 300,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.3),
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                    if (state.transactions.isEmpty)
-                      const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.0),
-                          child: Center(
-                            child: Text(
-                              'No transactions found.',
-                              style: TextStyle(color: AppColors.textSecondary),
+                        child: Center(
+                          child: Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(3, (index) {
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  height: 60,
+                                  width: double.infinity,
+                                  color: Colors.white,
+                                );
+                              }),
                             ),
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                ],
               );
             }
             return const Center(child: Text('Something went wrong'));
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          final state = context.read<HomeBloc>().state;
-          if (state is HomeLoaded && state.accounts.isNotEmpty) {
-            _showAddTransactionDialog(context, state.accounts);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please add an account first')),
-            );
-          }
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: const _FloatingActionButtonBuilder(),
+    );
+  }
+
+  Widget _buildLoadingSkeleton() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Summary skeleton
+            Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Accounts skeleton
+            Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: SizedBox(
+                height: 150,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 3,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      width: 140,
+                      margin: const EdgeInsets.only(right: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            // Transactions skeleton
+            ...List.generate(5, (index) {
+              return Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -204,11 +263,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Available Balance', style: TextStyle(color: Colors.white70, fontSize: 16)),
+          Text('Available Balance', style: AppTypography.style16Regular.copyWith(color: Colors.white70)),
           const SizedBox(height: 8),
           Text(
             formatter.format(balance),
-            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+            style: AppTypography.style32Bold.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 20),
           Row(
@@ -228,22 +287,34 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: color.withValues(alpha:0.2), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color.withOpacity(0.2), shape: BoxShape.circle),
           child: Icon(icon, color: color, size: 16),
         ),
         const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-            Text(amount, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(label, style: AppTypography.style12Regular.copyWith(color: Colors.white70)),
+            Text(amount, style: AppTypography.style16Bold.copyWith(color: Colors.white)),
           ],
         )
       ],
     );
   }
+}
 
-  Widget _buildAccountsList(BuildContext context, List<Account> accounts, Account? selectedAccount) {
+/// Separate widget to prevent unnecessary rebuilds of accounts list
+class _AccountsListBuilder extends StatelessWidget {
+  final List<Account> accounts;
+  final Account? selectedAccount;
+
+  const _AccountsListBuilder({
+    required this.accounts,
+    this.selectedAccount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
       height: 150,
       child: ListView.builder(
@@ -273,6 +344,41 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showAddAccountDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    String selectedColor = '#2196F3';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Add Account'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Account Name'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text.isNotEmpty) {
+                  context.read<HomeBloc>().add(AddAccount(name: nameController.text, colorCode: selectedColor));
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildAccountCard(Account account, bool isSelected) {
     final color = _colorFromHex(account.colorCode) ?? Colors.blue;
     final formatter = NumberFormat.currency(symbol: '\$');
@@ -297,22 +403,14 @@ class _HomeScreenState extends State<HomeScreen> {
           const Spacer(),
           Text(
             account.name,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
+            style: AppTypography.style16SemiBold.copyWith(color: color),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
             formatter.format(account.balance),
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTypography.style18Bold.copyWith(color: AppColors.textPrimary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -326,22 +424,19 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 140,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha:0.05),
+        color: Colors.grey.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha:0.3), style: BorderStyle.solid),
+        border: Border.all(color: Colors.grey.withOpacity(0.3), style: BorderStyle.solid),
       ),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add, color: AppColors.textSecondary, size: 32),
-            SizedBox(height: 8),
+            const Icon(Icons.add, color: AppColors.textSecondary, size: 32),
+            const SizedBox(height: 8),
             Text(
               'Add Account',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
+              style: AppTypography.style14SemiBold.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -349,7 +444,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFiltersAndSearch(BuildContext context, String currentFilter) {
+  Color? _colorFromHex(String? hexColor) {
+    if (hexColor == null || hexColor.isEmpty) return null;
+    final hexCode = hexColor.replaceAll('#', '');
+    return Color(int.parse('FF$hexCode', radix: 16));
+  }
+}
+
+/// Separate widget for filters and search to prevent unnecessary rebuilds
+class _FiltersAndSearchBuilder extends StatefulWidget {
+  final String currentFilter;
+
+  const _FiltersAndSearchBuilder({required this.currentFilter});
+
+  @override
+  State<_FiltersAndSearchBuilder> createState() => _FiltersAndSearchBuilderState();
+}
+
+class _FiltersAndSearchBuilderState extends State<_FiltersAndSearchBuilder> {
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         TextField(
@@ -369,7 +497,7 @@ class _HomeScreenState extends State<HomeScreen> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: ['All', 'Today', 'Weekly', 'Monthly', 'Yearly'].map((filter) {
-              final isSelected = currentFilter == filter;
+              final isSelected = widget.currentFilter == filter;
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: ChoiceChip(
@@ -388,8 +516,20 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
+}
 
-  Widget _buildTransactionItem(TransactionModel transaction, String accountName) {
+/// Separate widget for transaction items to prevent unnecessary rebuilds
+class _TransactionItemBuilder extends StatelessWidget {
+  final TransactionModel transaction;
+  final String accountName;
+
+  const _TransactionItemBuilder({
+    required this.transaction,
+    required this.accountName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final isIncome = transaction.type == 'INCOME';
     final formatter = NumberFormat.currency(symbol: '\$');
 
@@ -449,40 +589,27 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
 
-  void _showAddAccountDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    String selectedColor = '#2196F3'; // Blue default
+/// Separate widget for floating action button to prevent unnecessary rebuilds
+class _FloatingActionButtonBuilder extends StatelessWidget {
+  const _FloatingActionButtonBuilder();
 
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Add Account'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Account Name'),
-              ),
-              // Simple color picker mock
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty) {
-                  context.read<HomeBloc>().add(AddAccount(name: nameController.text, colorCode: selectedColor));
-                  Navigator.pop(ctx);
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () {
+        final state = context.read<HomeBloc>().state;
+        if (state is HomeLoaded && state.accounts.isNotEmpty) {
+          _showAddTransactionDialog(context, state.accounts);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please add an account first')),
+          );
+        }
       },
+      backgroundColor: AppColors.primary,
+      child: const Icon(Icons.add, color: Colors.white),
     );
   }
 
@@ -558,11 +685,5 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }
-
-  Color? _colorFromHex(String? hexColor) {
-    if (hexColor == null || hexColor.isEmpty) return null;
-    final hexCode = hexColor.replaceAll('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
   }
 }
