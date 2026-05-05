@@ -60,7 +60,12 @@ class HomeRepository {
     }
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
-      query = query.or('title.ilike.%$searchQuery%,note.ilike.%$searchQuery%');
+      final amountQuery = double.tryParse(searchQuery);
+      if (amountQuery != null) {
+        query = query.or('title.ilike.%$searchQuery%,note.ilike.%$searchQuery%,amount.eq.$amountQuery');
+      } else {
+        query = query.or('title.ilike.%$searchQuery%,note.ilike.%$searchQuery%');
+      }
     }
 
     final response = await query;

@@ -9,6 +9,7 @@ import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../../core/utils/pdf_export_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,6 +34,28 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Finance Tracker'),
         actions: [
+          BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, state) {
+              return IconButton(
+                icon: const Icon(Icons.picture_as_pdf),
+                onPressed: () {
+                  if (state is HomeLoaded) {
+                    if (state.transactions.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No transactions to export')),
+                      );
+                      return;
+                    }
+                    PdfExportService.exportTransactionHistory(
+                      state.selectedAccount,
+                      state.transactions,
+                      state.currentFilter,
+                    );
+                  }
+                },
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
@@ -172,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha:0.3),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -205,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: color.withOpacity(0.2), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color.withValues(alpha:0.2), shape: BoxShape.circle),
           child: Icon(icon, color: color, size: 16),
         ),
         const SizedBox(width: 8),
@@ -259,10 +282,10 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(right: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSelected ? color.withOpacity(0.2) : color.withOpacity(0.05),
+        color: isSelected ? color.withValues(alpha:0.2) : color.withValues(alpha:0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected ? color : color.withOpacity(0.2),
+          color: isSelected ? color : color.withValues(alpha:0.2),
           width: isSelected ? 2 : 1,
         ),
       ),
@@ -303,9 +326,9 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 140,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.05),
+        color: Colors.grey.withValues(alpha:0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.3), style: BorderStyle.solid),
+        border: Border.all(color: Colors.grey.withValues(alpha:0.3), style: BorderStyle.solid),
       ),
       child: const Center(
         child: Column(
@@ -378,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha:0.02),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -389,7 +412,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isIncome ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+              color: isIncome ? Colors.green.withValues(alpha:0.1) : Colors.red.withValues(alpha:0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -482,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<String>(
-                      value: selectedAccountId,
+                      initialValue: selectedAccountId,
                       items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
                       onChanged: (val) {
                         setState(() => selectedAccountId = val!);
