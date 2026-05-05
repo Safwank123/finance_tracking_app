@@ -4,7 +4,7 @@ class Account extends Equatable {
   final String id;
   final String name;
   final String? colorCode;
-  final double balance; // Computed or fetched
+  final double balance;
 
   const Account({
     required this.id,

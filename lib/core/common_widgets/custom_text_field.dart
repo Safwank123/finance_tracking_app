@@ -35,7 +35,7 @@ class CustomTextField extends StatelessWidget {
           style: AppTypography.style16Regular.copyWith(color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: 'Enter your ${label.toLowerCase()}',
-            hintStyle: AppTypography.style16Regular.copyWith(color: AppColors.textSecondary.withOpacity(0.5)),
+            hintStyle: AppTypography.style16Regular.copyWith(color: AppColors.textSecondary.withValues(alpha: 0.5)),
             prefixIcon: prefixIcon,
             filled: true,
             fillColor: AppColors.inputFill,

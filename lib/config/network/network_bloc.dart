@@ -19,11 +19,12 @@ class NetworkBloc extends Cubit<NetworkState> {
   }
 
   void _monitorInternet() async {
-    // Check initial connectivity state
     final initialResult = await _connectivity.checkConnectivity();
     _handleConnectivityChange(initialResult);
 
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_handleConnectivityChange);
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
+      _handleConnectivityChange,
+    );
   }
 
   void _handleConnectivityChange(List<ConnectivityResult> results) {
@@ -38,7 +39,6 @@ class NetworkBloc extends Cubit<NetworkState> {
     _wasDisconnected = true;
     emit(NetworkState.disconnected());
 
-    // Show toast only once per disconnection event
     if (!_hasShownDisconnectedToast) {
       _hasShownDisconnectedToast = true;
     }
@@ -60,10 +60,9 @@ class NetworkBloc extends Cubit<NetworkState> {
     return super.close();
   }
 
-  // Optional: Reset singleton for testing
   static void reset() {
     _instance._connectivitySubscription.cancel();
-    // Recreate the instance
+
     NetworkBloc._internal();
   }
 }

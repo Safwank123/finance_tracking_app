@@ -5,12 +5,15 @@ import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:toastification/toastification.dart';
 import '../../../../config/colors/app_colors.dart';
+import '../../../../config/routes/app_routes.dart';
 import '../../data/models/account_model.dart';
 import '../../data/models/transaction_model.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 import '../widgets/app_bar_actions.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,13 +31,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Finance Tracker'),
-        actions: const [AppBarActions()],
-      ),
-      body: SafeArea(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthUnauthenticated) {
+          Navigator.of(context).pushNamedAndRemoveUntil(RouteNames.login.name, (route) => false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Finance Tracker'),
+          actions: const [AppBarActions()],
+        ),
+        body: SafeArea(
         child: BlocConsumer<HomeBloc, HomeState>(
           listener: (context, state) {
             if (state is HomeError) {
@@ -118,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  // Loading overlay for filter/search
+                
                   if (state.isLoadingFilters)
                     Positioned(
                       bottom: 0,
@@ -173,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Summary skeleton
+           
             Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
@@ -186,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // Accounts skeleton
+          
             Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
@@ -209,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            // Transactions skeleton
+           
             ...List.generate(5, (index) {
               return Shimmer.fromColors(
                 baseColor: Colors.grey[300]!,
@@ -289,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: color.withOpacity(0.2), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color.withValues(alpha:0.2), shape: BoxShape.circle),
           child: Icon(icon, color: color, size: 16),
         ),
         const SizedBox(width: 8),
@@ -305,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// Separate widget to prevent unnecessary rebuilds of accounts list
+
 class _AccountsListBuilder extends StatelessWidget {
   final List<Account> accounts;
   final Account? selectedAccount;
@@ -434,9 +443,9 @@ class _AccountsListBuilder extends StatelessWidget {
       width: 140,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.05),
+        color: Colors.grey.withValues(alpha:0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.3), style: BorderStyle.solid),
+        border: Border.all(color: Colors.grey.withValues(alpha:0.3), style: BorderStyle.solid),
       ),
       child: Center(
         child: Column(
@@ -461,7 +470,6 @@ class _AccountsListBuilder extends StatelessWidget {
   }
 }
 
-/// Separate widget for filters and search to prevent unnecessary rebuilds
 class _FiltersAndSearchBuilder extends StatefulWidget {
   final String currentFilter;
 
@@ -528,7 +536,7 @@ class _FiltersAndSearchBuilderState extends State<_FiltersAndSearchBuilder> {
   }
 }
 
-/// Separate widget for transaction items to prevent unnecessary rebuilds
+
 class _TransactionItemBuilder extends StatelessWidget {
   final TransactionModel transaction;
   final String accountName;
@@ -551,7 +559,7 @@ class _TransactionItemBuilder extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha:0.03),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -601,7 +609,6 @@ class _TransactionItemBuilder extends StatelessWidget {
   }
 }
 
-/// Separate widget for floating action button to prevent unnecessary rebuilds
 class _FloatingActionButtonBuilder extends StatelessWidget {
   const _FloatingActionButtonBuilder();
 

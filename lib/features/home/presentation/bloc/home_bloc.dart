@@ -31,7 +31,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onFilterChanged(FilterChanged event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      // Do not emit HomeLoading() here to avoid wiping the screen
+  
       try {
         final transactions = await _homeRepository.getTransactions(
           accountId: currentState.selectedAccount?.id,
@@ -48,7 +48,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onSearchQueryChanged(SearchQueryChanged event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      // Do not emit HomeLoading() here to avoid wiping the screen
+     
       try {
         final transactions = await _homeRepository.getTransactions(
           accountId: currentState.selectedAccount?.id,
@@ -65,14 +65,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onAccountSelected(AccountSelected event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final currentState = state as HomeLoaded;
-      // Do not emit HomeLoading() here to avoid wiping the screen
+    
       try {
         final transactions = await _homeRepository.getTransactions(
           accountId: event.account?.id,
           searchQuery: currentState.searchQuery,
           filter: currentState.currentFilter,
         );
-        // Emit new state with updated transactions
+    
         emit(HomeLoaded(
           accounts: currentState.accounts,
           transactions: transactions,
@@ -97,7 +97,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         amount: event.amount,
         isIncome: event.isIncome,
       );
-      add(LoadHomeData()); // Reload everything after adding
+      add(LoadHomeData()); 
     } catch (e) {
       emit(HomeError(e.toString()));
     }
@@ -106,7 +106,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onAddAccount(AddAccount event, Emitter<HomeState> emit) async {
     try {
       await _homeRepository.createAccount(event.name, event.colorCode);
-      add(LoadHomeData()); // Reload everything after adding
+      add(LoadHomeData()); 
     } catch (e) {
       emit(HomeError(e.toString()));
     }

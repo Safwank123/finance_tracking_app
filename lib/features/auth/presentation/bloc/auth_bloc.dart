@@ -33,8 +33,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       try {
         await _authRepository.signUp(name: event.name, email: event.email, password: event.password);
-        // Supabase auto-logs in after sign up if email confirmation isn't required.
-        // We will assume they are authenticated or wait for the session stream.
+  
         emit(AuthAuthenticated());
       } catch (e) {
         emit(AuthError(e.toString()));

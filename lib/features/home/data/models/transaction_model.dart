@@ -6,7 +6,7 @@ class TransactionModel extends Equatable {
   final String title;
   final String? note;
   final double amount;
-  final String type; // 'INCOME' or 'EXPENSE'
+  final String type; 
   final DateTime createdAt;
 
   const TransactionModel({
