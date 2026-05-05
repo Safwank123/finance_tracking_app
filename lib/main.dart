@@ -5,6 +5,8 @@ import 'config/routes/app_routes.dart';
 import 'config/theme/app_theme.dart';
 import 'features/auth/data/repository/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/home/data/repository/home_repository.dart';
+import 'features/home/presentation/bloc/home_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +28,9 @@ class FinanceTrackerApp extends StatelessWidget {
       providers: [
         BlocProvider<AuthBloc>(
           create: (context) => AuthBloc(authRepository: AuthRepository()),
+        ),
+        BlocProvider<HomeBloc>(
+          create: (context) => HomeBloc(homeRepository: HomeRepository()),
         ),
       ],
       child: MaterialApp(
