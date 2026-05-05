@@ -42,8 +42,38 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: const Text('Finance Tracker'),
-          actions: const [AppBarActions()],
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          scrolledUnderElevation: 0,
+
+          titleSpacing: 16,
+
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Finance Tracker',
+                style: AppTypography.style20Bold.copyWith(
+                  letterSpacing: 0.5,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Manage your money smartly',
+                style: AppTypography.style12Regular.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: AppBarActions(),
+            ),
+          ],
         ),
         body: SafeArea(
           child: BlocConsumer<HomeBloc, HomeState>(
@@ -74,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildSummary(context, state.transactions, state.selectedAccount),
+                                  _buildSummary(state.transactions),
                                   const SizedBox(height: 24),
                                   Text(
                                     'Your Accounts',
@@ -194,6 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ),
+        floatingActionButton: const _FloatingActionButtonBuilder(),
       ),
     );
   }
@@ -261,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSummary(BuildContext context, List<TransactionModel> transactions, Account? selectedAccount) {
+  Widget _buildSummary(List<TransactionModel> transactions) {
     double checkIn = 0;
     double checkOut = 0;
 
@@ -276,196 +307,91 @@ class _HomeScreenState extends State<HomeScreen> {
     final balance = checkIn - checkOut;
     final formatter = NumberFormat.currency(symbol: '\$');
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('FINANCIAL OVERVIEW', style: AppTypography.style12SemiBold.copyWith(color: AppColors.primary, letterSpacing: 1.2)),
-        const SizedBox(height: 4),
-        Text(selectedAccount?.name ?? 'All Accounts', style: AppTypography.style16Regular.copyWith(color: AppColors.textPrimary)),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.add_circle_outline, size: 18),
-                label: const Text('Add Income'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () {
-                  final state = context.read<HomeBloc>().state;
-                  if (state is HomeLoaded && state.accounts.isNotEmpty) {
-                    _showAddTransactionDialog(context, state.accounts, true);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add an account first')));
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.remove_circle_outline, size: 18),
-                label: const Text('Add Expense'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  foregroundColor: AppColors.primary,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () {
-                  final state = context.read<HomeBloc>().state;
-                  if (state is HomeLoaded && state.accounts.isNotEmpty) {
-                    _showAddTransactionDialog(context, state.accounts, false);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add an account first')));
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Available Balance', style: AppTypography.style14Regular.copyWith(color: AppColors.textSecondary)),
-              const SizedBox(height: 8),
-              Text(formatter.format(balance), style: AppTypography.style32Bold.copyWith(color: AppColors.textPrimary)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        
-        _buildStatCard('Total Check-In', formatter.format(checkIn), Icons.arrow_downward, Colors.green),
-        const SizedBox(height: 12),
-        
-        _buildStatCard('Total Check-Out', formatter.format(checkOut), Icons.arrow_upward, Colors.red),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String label, String amount, IconData icon, Color color) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, Color(0xFF3700B3)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-        border: Border(left: BorderSide(color: color, width: 4)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 20),
+          Text(
+            'Available Balance',
+            style: AppTypography.style16Regular.copyWith(color: Colors.white70),
+          ),
           const SizedBox(height: 8),
-          Text(label, style: AppTypography.style14Regular.copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: 4),
-          Text(amount, style: AppTypography.style16Bold.copyWith(color: color)),
+          Text(
+            formatter.format(balance),
+            style: AppTypography.style32Bold.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSummaryItem(
+                'Check-In',
+                formatter.format(checkIn),
+                Icons.arrow_downward,
+                Colors.greenAccent,
+              ),
+              _buildSummaryItem(
+                'Check-Out',
+                formatter.format(checkOut),
+                Icons.arrow_upward,
+                Colors.redAccent,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  void _showAddTransactionDialog(BuildContext context, List<Account> accounts, bool initialIsIncome) {
-    final titleController = TextEditingController();
-    final amountController = TextEditingController();
-    final noteController = TextEditingController();
-    bool isIncome = initialIsIncome;
-    String selectedAccountId = accounts.first.id;
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Add Transaction'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedAccountId,
-                      items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                      onChanged: (val) {
-                        setState(() => selectedAccountId = val!);
-                      },
-                      decoration: const InputDecoration(labelText: 'Account'),
-                    ),
-                    const SizedBox(height: 8),
-                    SwitchListTile(
-                      title: Text(isIncome ? 'Income' : 'Expense'),
-                      value: isIncome,
-                      onChanged: (val) => setState(() => isIncome = val),
-                    ),
-                    TextField(
-                      controller: titleController,
-                      decoration: const InputDecoration(labelText: 'Title'),
-                    ),
-                    TextField(
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Amount'),
-                    ),
-                    TextField(
-                      controller: noteController,
-                      decoration: const InputDecoration(labelText: 'Note (Optional)'),
-                    ),
-                  ],
-                ),
+  Widget _buildSummaryItem(
+    String label,
+    String amount,
+    IconData icon,
+    Color color,
+  ) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 16),
+        ),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: AppTypography.style12Regular.copyWith(
+                color: Colors.white70,
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final amount = double.tryParse(amountController.text) ?? 0;
-                    if (titleController.text.isNotEmpty && amount > 0) {
-                      context.read<HomeBloc>().add(
-                        AddTransaction(
-                          accountId: selectedAccountId,
-                          title: titleController.text,
-                          amount: amount,
-                          note: noteController.text,
-                          isIncome: isIncome,
-                        ),
-                      );
-                      Navigator.pop(ctx);
-                      toastification.show(
-                        context: context,
-                        type: ToastificationType.success,
-                        style: ToastificationStyle.flatColored,
-                        title: const Text('Transaction Added!'),
-                        autoCloseDuration: const Duration(seconds: 3),
-                        alignment: Alignment.bottomCenter,
-                      );
-                    }
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+            ),
+            Text(
+              amount,
+              style: AppTypography.style16Bold.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -479,9 +405,10 @@ class _AccountsListBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 150,
+      height: 160,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
         itemCount: accounts.length + 1,
         itemBuilder: (context, index) {
           if (index == accounts.length) {
@@ -509,50 +436,174 @@ class _AccountsListBuilder extends StatelessWidget {
 
   void _showAddAccountDialog(BuildContext context) {
     final nameController = TextEditingController();
-    String selectedColor = '#2196F3';
+
+    // Modern colors for accounts
+    final List<String> availableColors = [
+      '#2196F3', // Blue
+      '#9C27B0', // Purple
+      '#00BCD4', // Cyan
+      '#4CAF50', // Green
+      '#FF9800', // Orange
+      '#F44336', // Red
+    ];
+    String selectedColor = availableColors.first;
 
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Add Account'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Account Name'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty) {
-                  context.read<HomeBloc>().add(
-                    AddAccount(
-                      name: nameController.text,
-                      colorCode: selectedColor,
+              backgroundColor: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'New Account',
+                      style: AppTypography.style20Bold.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                  );
-                  Navigator.pop(ctx);
-                  toastification.show(
-                    context: context,
-                    type: ToastificationType.success,
-                    style: ToastificationStyle.flatColored,
-                    title: const Text('Account Created!'),
-                    autoCloseDuration: const Duration(seconds: 3),
-                    alignment: Alignment.bottomCenter,
-                  );
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: nameController,
+                      style: AppTypography.style16Regular.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Account Name',
+                        labelStyle: AppTypography.style14Regular.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.inputFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Theme Color',
+                      style: AppTypography.style14SemiBold.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: availableColors.map((hexColor) {
+                        final hexCode = hexColor.replaceAll('#', '');
+                        final color = Color(int.parse('FF$hexCode', radix: 16));
+                        final isSelected = selectedColor == hexColor;
+                        return GestureDetector(
+                          onTap: () => setState(() => selectedColor = hexColor),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: isSelected
+                                  ? Border.all(
+                                      color: AppColors.textPrimary.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      width: 3,
+                                    )
+                                  : null,
+                              boxShadow: [
+                                if (isSelected)
+                                  BoxShadow(
+                                    color: color.withValues(alpha: 0.4),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: AppTypography.style16SemiBold.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (nameController.text.trim().isNotEmpty) {
+                                context.read<HomeBloc>().add(
+                                  AddAccount(
+                                    name: nameController.text.trim(),
+                                    colorCode: selectedColor,
+                                  ),
+                                );
+                                Navigator.pop(ctx);
+                                toastification.show(
+                                  context: context,
+                                  type: ToastificationType.success,
+                                  style: ToastificationStyle.flatColored,
+                                  title: const Text('Account Created!'),
+                                  autoCloseDuration: const Duration(seconds: 3),
+                                  alignment: Alignment.bottomCenter,
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Create',
+                              style: AppTypography.style16SemiBold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -563,36 +614,70 @@ class _AccountsListBuilder extends StatelessWidget {
     final formatter = NumberFormat.currency(symbol: '\$');
 
     return Container(
-      width: 140,
+      width: 160,
       margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isSelected
-            ? color.withValues(alpha: 0.2)
-            : color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected ? color : color.withValues(alpha: 0.2),
-          width: isSelected ? 2 : 1,
-        ),
+        gradient: isSelected
+            ? LinearGradient(
+                colors: [color, color.withValues(alpha: 0.7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: isSelected ? null : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: isSelected
+                ? color.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+        border: isSelected
+            ? null
+            : Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.account_balance_wallet, color: color),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.account_balance_wallet,
+                  color: isSelected ? Colors.white : color,
+                  size: 20,
+                ),
+              ),
+              if (isSelected)
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            ],
+          ),
           const Spacer(),
           Text(
             account.name,
-            style: AppTypography.style16SemiBold.copyWith(color: color),
+            style: AppTypography.style14Regular.copyWith(
+              color: isSelected ? Colors.white70 : AppColors.textSecondary,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
             formatter.format(account.balance),
-            style: AppTypography.style18Bold.copyWith(
-              color: AppColors.textPrimary,
+            style: AppTypography.style20Bold.copyWith(
+              color: isSelected ? Colors.white : AppColors.textPrimary,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -604,26 +689,33 @@ class _AccountsListBuilder extends StatelessWidget {
 
   Widget _buildAddAccountCard() {
     return Container(
-      width: 140,
+      width: 160,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.3),
-          style: BorderStyle.solid,
+          color: AppColors.primary.withValues(alpha: 0.2),
+          width: 2,
         ),
       ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.add, color: AppColors.textSecondary, size: 32),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add, color: AppColors.primary, size: 24),
+            ),
+            const SizedBox(height: 12),
             Text(
               'Add Account',
               style: AppTypography.style14SemiBold.copyWith(
-                color: AppColors.textSecondary,
+                color: AppColors.primary,
               ),
             ),
           ],
@@ -670,34 +762,103 @@ class _FiltersAndSearchBuilderState extends State<_FiltersAndSearchBuilder> {
       children: [
         TextField(
           controller: _searchController,
+          style: AppTypography.style16Regular.copyWith(
+            color: AppColors.textPrimary,
+          ),
           decoration: InputDecoration(
             hintText: 'Search transactions...',
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            contentPadding: EdgeInsets.zero,
+            hintStyle: AppTypography.style14Regular.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            prefixIcon: const Icon(
+              Icons.search,
+              color: AppColors.textSecondary,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: Colors.grey.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
           ),
           onChanged: (val) {
             context.read<HomeBloc>().add(SearchQueryChanged(val));
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
           child: Row(
             children: ['All', 'Today', 'Weekly', 'Monthly', 'Yearly'].map((
               filter,
             ) {
               final isSelected = widget.currentFilter == filter;
               return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ChoiceChip(
-                  label: Text(filter),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
+                padding: const EdgeInsets.only(right: 12.0),
+                child: GestureDetector(
+                  onTap: () {
+                    if (!isSelected) {
                       context.read<HomeBloc>().add(FilterChanged(filter));
                     }
                   },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                      border: isSelected
+                          ? null
+                          : Border.all(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                            ),
+                    ),
+                    child: Text(
+                      filter,
+                      style: AppTypography.style14SemiBold.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
                 ),
               );
             }).toList(),
@@ -775,36 +936,331 @@ class _TransactionItemBuilder extends StatelessWidget {
               ],
             ),
           ),
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${isIncome ? '+' : '-'}${formatter.format(transaction.amount)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isIncome ? Colors.green : Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isIncome ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    isIncome ? 'CREDIT' : 'DEBIT',
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      color: isIncome ? Colors.green : Colors.red,
-                    ),
-                  ),
-                ),
-              ],
+          Text(
+            '${isIncome ? '+' : '-'}${formatter.format(transaction.amount)}',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isIncome ? Colors.green : Colors.red,
             ),
+          ),
         ],
       ),
     );
   }
+}
+
+class _FloatingActionButtonBuilder extends StatelessWidget {
+  const _FloatingActionButtonBuilder();
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () {
+        final state = context.read<HomeBloc>().state;
+
+        if (state is HomeLoaded && state.accounts.isNotEmpty) {
+          _showAddTransactionDialog(context, state.accounts);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please add an account first')),
+          );
+        }
+      },
+
+      backgroundColor: AppColors.primary,
+      elevation: 4,
+
+      icon: const Icon(Icons.add, color: Colors.white),
+
+      label: const Text(
+        'Add Transaction',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+void _showAddTransactionDialog(BuildContext context, List<Account> accounts) {
+  final titleController = TextEditingController();
+  final amountController = TextEditingController();
+  final noteController = TextEditingController();
+  bool isIncome = false;
+  String selectedAccountId = accounts.first.id;
+
+  showDialog(
+    context: context,
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'New Transaction',
+                      style: AppTypography.style20Bold.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.inputFill,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedAccountId,
+                          isExpanded: true,
+                          icon: const Icon(
+                            Icons.arrow_drop_down,
+                            color: AppColors.textSecondary,
+                          ),
+                          style: AppTypography.style16Regular.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                          items: accounts
+                              .map(
+                                (a) => DropdownMenuItem(
+                                  value: a.id,
+                                  child: Text(a.name),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => selectedAccountId = val!),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => isIncome = true),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isIncome
+                                    ? Colors.green.withValues(alpha: 0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isIncome
+                                      ? Colors.green
+                                      : Colors.grey.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Income',
+                                style: AppTypography.style14SemiBold.copyWith(
+                                  color: isIncome
+                                      ? Colors.green
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => isIncome = false),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: !isIncome
+                                    ? Colors.red.withValues(alpha: 0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: !isIncome
+                                      ? Colors.red
+                                      : Colors.grey.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Expense',
+                                style: AppTypography.style14SemiBold.copyWith(
+                                  color: !isIncome
+                                      ? Colors.red
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: titleController,
+                      style: AppTypography.style16Regular.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Title',
+                        labelStyle: AppTypography.style14Regular.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.inputFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: amountController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: AppTypography.style16Regular.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        prefixText: '\$ ',
+                        labelStyle: AppTypography.style14Regular.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.inputFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: noteController,
+                      style: AppTypography.style16Regular.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Note (Optional)',
+                        labelStyle: AppTypography.style14Regular.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.inputFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: AppTypography.style16SemiBold.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final amount =
+                                  double.tryParse(amountController.text) ?? 0;
+                              if (titleController.text.trim().isNotEmpty &&
+                                  amount > 0) {
+                                context.read<HomeBloc>().add(
+                                  AddTransaction(
+                                    accountId: selectedAccountId,
+                                    title: titleController.text.trim(),
+                                    amount: amount,
+                                    note: noteController.text.trim(),
+                                    isIncome: isIncome,
+                                  ),
+                                );
+                                Navigator.pop(ctx);
+                                toastification.show(
+                                  context: context,
+                                  type: ToastificationType.success,
+                                  style: ToastificationStyle.flatColored,
+                                  title: const Text('Transaction Added!'),
+                                  autoCloseDuration: const Duration(seconds: 3),
+                                  alignment: Alignment.bottomCenter,
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Save',
+                              style: AppTypography.style16SemiBold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
