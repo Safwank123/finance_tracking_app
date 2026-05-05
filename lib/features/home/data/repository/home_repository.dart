@@ -53,7 +53,7 @@ class HomeRepository {
     String? searchQuery,
     String filter = 'All', 
   }) async {
-    var query = _supabaseClient.from('transactions').select().order('created_at', ascending: false);
+    var query = _supabaseClient.from('transactions').select();
 
     if (accountId != null && accountId.isNotEmpty) {
       query = query.eq('account_id', accountId);
@@ -68,7 +68,7 @@ class HomeRepository {
       }
     }
 
-    final response = await query;
+    final response = await query.order('created_at', ascending: false);
     List<TransactionModel> transactions = response.map((json) => TransactionModel.fromJson(json)).toList();
 
     if (filter != 'All') {
